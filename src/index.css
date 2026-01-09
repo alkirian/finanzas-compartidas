@@ -1208,6 +1208,7 @@ h3 {
 
 /* Prevent zoom on input focus (iOS) */
 @media screen and (max-width: 768px) {
+
   input[type="text"],
   input[type="number"],
   input[type="tel"],
@@ -1222,11 +1223,11 @@ h3 {
   .modal {
     animation: slideUp 0.25s ease;
   }
-  
+
   .modal-overlay {
     animation: fadeIn 0.15s ease;
   }
-  
+
   .btn,
   .nav-item,
   .tab {
@@ -1239,9 +1240,11 @@ h3 {
   0% {
     transform: scale(1);
   }
+
   50% {
     transform: scale(1.02);
   }
+
   100% {
     transform: scale(1);
   }
@@ -1267,4 +1270,111 @@ h3 {
   background: rgba(255, 255, 255, 0.12);
   border-color: var(--color-primary);
   box-shadow: 0 0 0 3px rgba(56, 189, 248, 0.1);
+}
+
+/* ===========================================
+   PERFORMANCE OPTIMIZATIONS FOR MOBILE
+   =========================================== */
+
+/* GPU acceleration for animated elements */
+.modal,
+.voice-button,
+.btn,
+.transaction-item-clickable,
+.stat-card-clickable {
+  will-change: transform;
+  transform: translateZ(0);
+  -webkit-transform: translateZ(0);
+}
+
+/* Disable expensive backdrop-filter on low-end mobile devices */
+@media (hover: none) and (pointer: coarse) {
+
+  /* Reduce blur intensity on mobile for performance */
+  :root {
+    --glass-blur: blur(8px);
+  }
+
+  /* Use solid backgrounds instead of blur for frequently updated elements */
+  .transaction-item,
+  .stat-card,
+  .card {
+    backdrop-filter: none !important;
+    -webkit-backdrop-filter: none !important;
+    background: rgba(30, 41, 59, 0.95);
+  }
+
+  /* Keep blur only on static/important elements */
+  .nav-bar {
+    backdrop-filter: blur(8px);
+    -webkit-backdrop-filter: blur(8px);
+  }
+}
+
+/* Further optimizations for very low-end devices */
+@media (max-width: 380px) {
+
+  .transaction-item,
+  .stat-card-clickable,
+  .card,
+  .balance-card,
+  .modal {
+    backdrop-filter: none !important;
+    -webkit-backdrop-filter: none !important;
+  }
+
+  .balance-card {
+    background: linear-gradient(135deg, rgba(56, 189, 248, 0.2) 0%, rgba(52, 211, 153, 0.15) 100%);
+  }
+
+  .modal {
+    background: rgba(15, 23, 41, 0.98);
+  }
+}
+
+/* Respect reduced motion preferences */
+@media (prefers-reduced-motion: reduce) {
+
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
+
+  .modal {
+    animation: none;
+  }
+
+  .modal-overlay {
+    animation: none;
+  }
+}
+
+/* Optimize scrolling performance */
+.page,
+.modal,
+.transaction-list {
+  -webkit-overflow-scrolling: touch;
+  overscroll-behavior: contain;
+}
+
+/* Prevent layout thrashing */
+.transaction-item,
+.stat-card-clickable {
+  contain: layout style;
+}
+
+/* Optimize repaints for color changes */
+.amount-income,
+.amount-expense,
+.balance-value {
+  will-change: color;
+}
+
+/* Force hardware acceleration on nav */
+.nav-bar {
+  transform: translateZ(0);
+  -webkit-transform: translateZ(0);
 }
