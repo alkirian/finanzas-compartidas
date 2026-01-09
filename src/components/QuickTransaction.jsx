@@ -1,5 +1,6 @@
-import { useState } from 'react';
+import { useState, useRef, useEffect } from 'react';
 import { formatCurrency } from '../lib/storage';
+import { hapticFeedback } from '../lib/mobileUX';
 
 export default function QuickTransaction({ onSave, onClose, preselectedType }) {
     const [type, setType] = useState(preselectedType || 'expense');
@@ -15,6 +16,9 @@ export default function QuickTransaction({ onSave, onClose, preselectedType }) {
     const handleSubmit = (e) => {
         e.preventDefault();
         if (!description.trim() || !amount) return;
+
+        // Haptic feedback on success
+        hapticFeedback('success');
 
         onSave({
             type,

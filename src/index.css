@@ -1144,3 +1144,127 @@ h3 {
   text-transform: uppercase;
   letter-spacing: 0.05em;
 }
+
+/* ===========================================
+   MOBILE UX IMPROVEMENTS
+   =========================================== */
+
+/* Better virtual keyboard handling */
+@supports (height: 100dvh) {
+  .modal-overlay {
+    height: 100dvh;
+  }
+}
+
+/* When keyboard is open, adjust modal */
+.modal {
+  /* Ensure modal adjusts when keyboard opens */
+  transition: max-height 0.3s ease;
+}
+
+/* Sticky submit button when keyboard is open */
+.modal .btn {
+  position: sticky;
+  bottom: 0;
+  z-index: 10;
+  margin-top: var(--spacing-md);
+}
+
+/* Input focus scroll fix */
+.input:focus {
+  scroll-margin-bottom: 100px;
+}
+
+/* Smoother scrolling for forms */
+.form {
+  scroll-behavior: smooth;
+  -webkit-overflow-scrolling: touch;
+}
+
+/* Better touch targets - minimum 44px for accessibility */
+.nav-item,
+.modal-close,
+.tab {
+  min-height: 44px;
+  min-width: 44px;
+}
+
+/* Prevent text selection on interactive elements */
+.btn,
+.nav-item,
+.tab,
+.stat-card-clickable,
+.transaction-item-clickable {
+  -webkit-user-select: none;
+  user-select: none;
+}
+
+/* Better active states for touch */
+.stat-card-clickable:active,
+.transaction-item-clickable:active,
+.btn:active {
+  opacity: 0.9;
+}
+
+/* Prevent zoom on input focus (iOS) */
+@media screen and (max-width: 768px) {
+  input[type="text"],
+  input[type="number"],
+  input[type="tel"],
+  select,
+  textarea {
+    font-size: 16px !important;
+  }
+}
+
+/* Faster animations on mobile for snappier feel */
+@media (hover: none) and (pointer: coarse) {
+  .modal {
+    animation: slideUp 0.25s ease;
+  }
+  
+  .modal-overlay {
+    animation: fadeIn 0.15s ease;
+  }
+  
+  .btn,
+  .nav-item,
+  .tab {
+    transition: all 100ms ease;
+  }
+}
+
+/* Loading states with haptic pulse */
+@keyframes successPulse {
+  0% {
+    transform: scale(1);
+  }
+  50% {
+    transform: scale(1.02);
+  }
+  100% {
+    transform: scale(1);
+  }
+}
+
+.btn:active:not(:disabled) {
+  animation: successPulse 0.2s ease;
+}
+
+/* Handle notch/safe areas */
+.modal {
+  padding-left: max(var(--spacing-lg), env(safe-area-inset-left));
+  padding-right: max(var(--spacing-lg), env(safe-area-inset-right));
+}
+
+/* Better contrast for amount input */
+.input-money {
+  background: rgba(255, 255, 255, 0.08);
+  border-color: var(--glass-border);
+}
+
+.input-money:focus {
+  background: rgba(255, 255, 255, 0.12);
+  border-color: var(--color-primary);
+  box-shadow: 0 0 0 3px rgba(56, 189, 248, 0.1);
+}

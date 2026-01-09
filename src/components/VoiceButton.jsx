@@ -1,5 +1,6 @@
 import { useState, useRef, useEffect } from 'react';
 import { parseVoiceCommand } from '../lib/gemini';
+import { hapticFeedback } from '../lib/mobileUX';
 
 export default function VoiceButton({ onCommand, onError, onStatusChange }) {
     const [isListening, setIsListening] = useState(false);
@@ -91,6 +92,9 @@ export default function VoiceButton({ onCommand, onError, onStatusChange }) {
     };
 
     const toggleListening = () => {
+        // Haptic feedback when pressing voice button
+        hapticFeedback('medium');
+
         if (!recognitionRef.current) {
             onError?.('Tu navegador no soporta reconocimiento de voz.');
             return;
