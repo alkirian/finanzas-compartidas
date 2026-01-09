@@ -139,6 +139,20 @@ function App() {
     setShowTransactionModal(true);
   };
 
+  // Handle voice command from Gemini AI
+  const handleVoiceCommand = async (command) => {
+    const newTransaction = await addTransaction(command);
+    if (newTransaction) {
+      loadData();
+      const typeLabel = command.type === 'income' ? 'Ingreso' : 'Gasto';
+      showToast(`¡${typeLabel} de ${command.amount.toLocaleString('es-UY')} registrado por voz!`);
+    }
+  };
+
+  const handleVoiceError = (message) => {
+    showToast(message, 'error');
+  };
+
   // Get current month transactions
   const now = new Date();
   const currentMonthTransactions = transactions.filter((t) => {
@@ -185,6 +199,8 @@ function App() {
           activeCredits={activeCredits}
           onEditTransaction={handleEditTransaction}
           onQuickAdd={openTransactionModal}
+          onVoiceCommand={handleVoiceCommand}
+          onVoiceError={handleVoiceError}
         />
       )}
       {activeTab === 'fixed' && (

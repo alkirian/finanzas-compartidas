@@ -1,6 +1,7 @@
 import { formatCurrency, formatDate, getMonthName } from '../lib/storage';
+import VoiceButton from './VoiceButton';
 
-export default function Dashboard({ stats, recentTransactions, fixedExpenses, activeCredits, onEditTransaction, onQuickAdd }) {
+export default function Dashboard({ stats, recentTransactions, fixedExpenses, activeCredits, onEditTransaction, onQuickAdd, onVoiceCommand, onVoiceError, voiceStatus }) {
     const now = new Date();
     const currentMonth = now.getMonth();
     const currentYear = now.getFullYear();
@@ -57,6 +58,18 @@ export default function Dashboard({ stats, recentTransactions, fixedExpenses, ac
                         <span className="stat-add-hint">+ agregar</span>
                     </button>
                 </div>
+
+                {/* Voice Command Button */}
+                <VoiceButton
+                    onCommand={onVoiceCommand}
+                    onError={onVoiceError}
+                    onStatusChange={() => { }}
+                />
+                {voiceStatus && (
+                    <p className="voice-status" style={{ textAlign: 'center', marginTop: 'var(--spacing-sm)' }}>
+                        {voiceStatus}
+                    </p>
+                )}
 
                 {/* Breakdown */}
                 <div className="breakdown-section">
