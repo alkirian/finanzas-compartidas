@@ -72,7 +72,7 @@ export async function sendTransactionNotification(transaction) {
             await registration.showNotification(title, {
                 body: body,
                 icon: '/finanzas-compartidas/icon-192.png',
-                badge: '/finanzas-compartidas/icon-192.png',
+                badge: '/finanzas-compartidas/notification-icon.png',
                 tag: `transaction-${Date.now()}`,
                 vibrate: isIncome ? [200, 100, 200] : [100, 50, 100],
                 data: { transaction },
@@ -133,7 +133,7 @@ export async function sendMultipleTransactionsNotification(transactions) {
             await registration.showNotification(title, {
                 body: body,
                 icon: '/finanzas-compartidas/icon-192.png',
-                badge: '/finanzas-compartidas/icon-192.png',
+                badge: '/finanzas-compartidas/notification-icon.png',
                 tag: `transactions-multiple-${Date.now()}`,
                 vibrate: [100, 50, 100, 50, 100],
                 requireInteraction: false,

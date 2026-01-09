@@ -1,11 +1,12 @@
 // Service Worker for Finanzas App with Push Notifications
 
-const CACHE_NAME = 'finanzas-v2';
+const CACHE_NAME = 'finanzas-v3';
 const ASSETS_TO_CACHE = [
     '/finanzas-compartidas/',
     '/finanzas-compartidas/index.html',
     '/finanzas-compartidas/icon-192.png',
     '/finanzas-compartidas/icon-512.png',
+    '/finanzas-compartidas/notification-icon.png',
     '/finanzas-compartidas/manifest.json',
 ];
 
@@ -76,7 +77,7 @@ self.addEventListener('push', (event) => {
 
     const options = {
         icon: '/finanzas-compartidas/icon-192.png',
-        badge: '/finanzas-compartidas/icon-192.png',
+        badge: '/finanzas-compartidas/notification-icon.png',
         vibrate: [100, 50, 100],
         requireInteraction: false,
     };
