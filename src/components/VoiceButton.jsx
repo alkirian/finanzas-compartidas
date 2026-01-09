@@ -67,22 +67,19 @@ export default function VoiceButton({ onCommand, onError, onStatusChange }) {
     const handleFinalTranscript = async (text) => {
         setIsListening(false);
         setIsProcessing(true);
-        onStatusChange?.('Procesando...');
+        onStatusChange?.('Procesando con IA...');
 
         try {
             const result = await parseVoiceCommand(text);
+            console.log('📦 Resultado del parser:', result);
 
-            if (result.action === 'add_transaction') {
-                onCommand?.({
-                    type: result.type,
-                    amount: result.amount,
-                    description: result.description,
-                });
-                onStatusChange?.(null);
-            } else if (result.action === 'unknown' || result.action === 'error') {
+            // Pass the entire result to the parent - it handles single/multiple
+            if (result.action === 'add_transaction' || result.action === 'add_multiple') {
+                onCommand?.(result);
+            } else if (result.action === 'error') {
                 onError?.(result.message);
-                onStatusChange?.(null);
             }
+            onStatusChange?.(null);
         } catch (error) {
             console.error('Error processing command:', error);
             onError?.('Error procesando el comando.');

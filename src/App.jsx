@@ -140,12 +140,34 @@ function App() {
   };
 
   // Handle voice command from Gemini AI
-  const handleVoiceCommand = async (command) => {
-    const newTransaction = await addTransaction(command);
-    if (newTransaction) {
+  const handleVoiceCommand = async (result) => {
+    if (result.action === 'add_transaction') {
+      // Single transaction
+      const newTransaction = await addTransaction({
+        type: result.type,
+        amount: result.amount,
+        description: result.description,
+      });
+      if (newTransaction) {
+        loadData();
+        const typeLabel = result.type === 'income' ? 'Ingreso' : 'Gasto';
+        showToast(`¡${typeLabel} de $${result.amount.toLocaleString('es-UY')} registrado!`);
+      }
+    } else if (result.action === 'add_multiple') {
+      // Multiple transactions
+      let successCount = 0;
+      for (const t of result.transactions) {
+        const newTransaction = await addTransaction({
+          type: t.type,
+          amount: t.amount,
+          description: t.description,
+        });
+        if (newTransaction) successCount++;
+      }
       loadData();
-      const typeLabel = command.type === 'income' ? 'Ingreso' : 'Gasto';
-      showToast(`¡${typeLabel} de ${command.amount.toLocaleString('es-UY')} registrado por voz!`);
+      showToast(`¡${successCount} transacciones registradas por voz!`);
+    } else if (result.action === 'error') {
+      showToast(result.message, 'error');
     }
   };
 
