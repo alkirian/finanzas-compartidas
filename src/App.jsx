@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import Dashboard from './components/Dashboard';
 import FixedExpenses from './components/FixedExpenses';
 import Credits from './components/Credits';
@@ -26,6 +26,7 @@ function App() {
   const [activeTab, setActiveTab] = useState('dashboard');
   const [showTransactionModal, setShowTransactionModal] = useState(false);
   const [editingTransaction, setEditingTransaction] = useState(null);
+  const [loading, setLoading] = useState(true);
   const [transactions, setTransactions] = useState([]);
   const [fixedExpenses, setFixedExpenses] = useState([]);
   const [credits, setCredits] = useState([]);
@@ -40,35 +41,49 @@ function App() {
     balance: 0,
   });
 
-  // Load data on mount
-  useEffect(() => {
-    loadData();
+  const loadData = useCallback(async () => {
+    try {
+      const now = new Date();
+      const [loadedTransactions, loadedFixedExpenses, loadedCredits] = await Promise.all([
+        getTransactions(),
+        getFixedExpenses(),
+        getCredits(),
+      ]);
+
+      const loadedActiveCredits = getActiveCreditsForMonth(loadedCredits, now.getFullYear(), now.getMonth());
+      const loadedCreditsSummary = getCreditsSummary(loadedCredits);
+      const monthlyStats = getMonthlyStats(
+        loadedTransactions,
+        loadedFixedExpenses,
+        loadedCredits,
+        now.getFullYear(),
+        now.getMonth()
+      );
+
+      setTransactions(loadedTransactions);
+      setFixedExpenses(loadedFixedExpenses);
+      setCredits(loadedCredits);
+      setActiveCredits(loadedActiveCredits);
+      setCreditsSummary(loadedCreditsSummary);
+      setStats(monthlyStats);
+    } catch (error) {
+      console.error('Error loading data:', error);
+    } finally {
+      setLoading(false);
+    }
   }, []);
 
-  const loadData = () => {
-    const now = new Date();
-    const loadedTransactions = getTransactions();
-    const loadedFixedExpenses = getFixedExpenses();
-    const loadedCredits = getCredits();
-    const loadedActiveCredits = getActiveCreditsForMonth(now.getFullYear(), now.getMonth());
-    const loadedCreditsSummary = getCreditsSummary();
-    const monthlyStats = getMonthlyStats(now.getFullYear(), now.getMonth());
+  useEffect(() => {
+    loadData();
+  }, [loadData]);
 
-    setTransactions(loadedTransactions);
-    setFixedExpenses(loadedFixedExpenses);
-    setCredits(loadedCredits);
-    setActiveCredits(loadedActiveCredits);
-    setCreditsSummary(loadedCreditsSummary);
-    setStats(monthlyStats);
-  };
-
-  const handleAddTransaction = (transaction) => {
-    addTransaction(transaction);
+  const handleAddTransaction = async (transaction) => {
+    await addTransaction(transaction);
     loadData();
   };
 
-  const handleUpdateTransaction = (transaction) => {
-    updateTransaction(transaction.id, {
+  const handleUpdateTransaction = async (transaction) => {
+    await updateTransaction(transaction.id, {
       type: transaction.type,
       description: transaction.description,
       amount: transaction.amount,
@@ -76,28 +91,28 @@ function App() {
     loadData();
   };
 
-  const handleDeleteTransaction = (id) => {
-    deleteTransaction(id);
+  const handleDeleteTransaction = async (id) => {
+    await deleteTransaction(id);
     loadData();
   };
 
-  const handleAddFixedExpense = (expense) => {
-    addFixedExpense(expense);
+  const handleAddFixedExpense = async (expense) => {
+    await addFixedExpense(expense);
     loadData();
   };
 
-  const handleDeleteFixedExpense = (id) => {
-    deleteFixedExpense(id);
+  const handleDeleteFixedExpense = async (id) => {
+    await deleteFixedExpense(id);
     loadData();
   };
 
-  const handleAddCredit = (credit) => {
-    addCredit(credit);
+  const handleAddCredit = async (credit) => {
+    await addCredit(credit);
     loadData();
   };
 
-  const handleDeleteCredit = (id) => {
-    deleteCredit(id);
+  const handleDeleteCredit = async (id) => {
+    await deleteCredit(id);
     loadData();
   };
 
@@ -108,9 +123,37 @@ function App() {
   // Get current month transactions
   const now = new Date();
   const currentMonthTransactions = transactions.filter((t) => {
-    const date = new Date(t.createdAt);
+    const date = new Date(t.created_at);
     return date.getFullYear() === now.getFullYear() && date.getMonth() === now.getMonth();
   });
+
+  if (loading) {
+    return (
+      <div style={{
+        display: 'flex',
+        alignItems: 'center',
+        justifyContent: 'center',
+        minHeight: '100vh',
+        flexDirection: 'column',
+        gap: '1rem'
+      }}>
+        <div style={{
+          width: '40px',
+          height: '40px',
+          border: '4px solid var(--color-border)',
+          borderTopColor: 'var(--color-primary)',
+          borderRadius: '50%',
+          animation: 'spin 1s linear infinite'
+        }} />
+        <p style={{ color: 'var(--color-text-muted)' }}>Cargando...</p>
+        <style>{`
+          @keyframes spin {
+            to { transform: rotate(360deg); }
+          }
+        `}</style>
+      </div>
+    );
+  }
 
   return (
     <>

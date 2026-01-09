@@ -8,7 +8,7 @@ export default function History({ transactions, fixedExpenses, onEdit, onDelete 
 
     // Filter transactions for selected month
     const filteredTransactions = transactions.filter((t) => {
-        const date = new Date(t.createdAt);
+        const date = new Date(t.created_at);
         return date.getFullYear() === selectedYear && date.getMonth() === selectedMonth;
     });
 
@@ -130,7 +130,7 @@ export default function History({ transactions, fixedExpenses, onEdit, onDelete 
                                     </div>
                                     <div className="transaction-info">
                                         <p className="transaction-description">{transaction.description}</p>
-                                        <p className="transaction-date">{formatDate(transaction.createdAt)}</p>
+                                        <p className="transaction-date">{formatDate(transaction.created_at)}</p>
                                     </div>
                                     <p className={`transaction-amount ${transaction.type === 'income' ? 'amount-income' : 'amount-expense'}`}>
                                         {transaction.type === 'income' ? '+' : '-'}{formatCurrency(transaction.amount)}

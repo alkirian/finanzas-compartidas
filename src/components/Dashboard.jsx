@@ -144,7 +144,7 @@ export default function Dashboard({ stats, recentTransactions, fixedExpenses, ac
                                     </div>
                                     <div className="transaction-info">
                                         <p className="transaction-description">{transaction.description}</p>
-                                        <p className="transaction-date">{formatDate(transaction.createdAt)}</p>
+                                        <p className="transaction-date">{formatDate(transaction.created_at)}</p>
                                     </div>
                                     <p className={`transaction-amount ${transaction.type === 'income' ? 'amount-income' : 'amount-expense'}`}>
                                         {transaction.type === 'income' ? '+' : '-'}{formatCurrency(transaction.amount)}
