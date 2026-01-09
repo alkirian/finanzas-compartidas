@@ -8,81 +8,78 @@ export default function Dashboard({ stats, recentTransactions, fixedExpenses, ac
     return (
         <div className="page">
             <div className="container">
-                <div className="header">
-                    <h1 className="header-title">💰 Finanzas</h1>
-                    <p style={{ fontSize: '0.875rem', color: 'var(--color-text-muted)', marginTop: 'var(--spacing-xs)' }}>
-                        📅 {getMonthName(currentMonth)} {currentYear}
-                    </p>
+                {/* Header with prominent month */}
+                <div className="dashboard-header">
+                    <span className="dashboard-emoji">💰</span>
+                    <h1 className="dashboard-title">Finanzas</h1>
+                    <div className="month-display">
+                        <span className="month-name">{getMonthName(currentMonth)}</span>
+                        <span className="month-year">{currentYear}</span>
+                    </div>
                 </div>
 
                 {/* Balance Card */}
                 <div className="balance-card">
                     <p className="balance-label">Saldo del Mes</p>
-                    <p className={`balance-value ${stats.balance >= 0 ? 'amount-income' : ''}`} style={{ color: stats.balance >= 0 ? '#10B981' : '#EF4444' }}>
+                    <p className={`balance-value`} style={{ color: stats.balance >= 0 ? '#10B981' : '#EF4444' }}>
                         {formatCurrency(stats.balance)}
                     </p>
                 </div>
 
-                {/* Quick Action Buttons */}
-                <div className="quick-actions">
+                {/* Stats Grid - Clickable */}
+                <div className="stats-grid-clickable">
                     <button
-                        className="quick-action-btn income"
+                        className="stat-card-clickable income"
                         onClick={() => onQuickAdd('income')}
                     >
-                        <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
-                            <line x1="12" y1="19" x2="12" y2="5"></line>
-                            <polyline points="5 12 12 5 19 12"></polyline>
-                        </svg>
-                        Ingreso
-                    </button>
-                    <button
-                        className="quick-action-btn expense"
-                        onClick={() => onQuickAdd('expense')}
-                    >
-                        <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
-                            <line x1="12" y1="5" x2="12" y2="19"></line>
-                            <polyline points="19 12 12 19 5 12"></polyline>
-                        </svg>
-                        Gasto
-                    </button>
-                </div>
-
-                {/* Stats Grid */}
-                <div className="stats-grid">
-                    <div className="stat-card">
+                        <div className="stat-card-icon">
+                            <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                                <line x1="12" y1="19" x2="12" y2="5"></line>
+                                <polyline points="5 12 12 5 19 12"></polyline>
+                            </svg>
+                        </div>
                         <p className="stat-label">Ingresos</p>
                         <p className="stat-value amount-income">{formatCurrency(stats.income)}</p>
-                    </div>
-                    <div className="stat-card">
+                        <span className="stat-add-hint">+ agregar</span>
+                    </button>
+                    <button
+                        className="stat-card-clickable expense"
+                        onClick={() => onQuickAdd('expense')}
+                    >
+                        <div className="stat-card-icon">
+                            <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                                <line x1="12" y1="5" x2="12" y2="19"></line>
+                                <polyline points="19 12 12 19 5 12"></polyline>
+                            </svg>
+                        </div>
                         <p className="stat-label">Gastos</p>
                         <p className="stat-value amount-expense">{formatCurrency(stats.totalExpenses)}</p>
-                    </div>
+                        <span className="stat-add-hint">+ agregar</span>
+                    </button>
                 </div>
 
                 {/* Breakdown */}
-                <div style={{ marginTop: 'var(--spacing-lg)' }}>
-                    <div className="stats-grid">
-                        <div className="stat-card">
-                            <p className="stat-label">Gastos Fijos</p>
-                            <p className="stat-value" style={{ fontSize: '1rem' }}>
-                                {formatCurrency(stats.fixedExpenses)}
-                            </p>
+                <div className="breakdown-section">
+                    <div className="breakdown-grid">
+                        <div className="breakdown-item">
+                            <span className="breakdown-label">Fijos</span>
+                            <span className="breakdown-value">{formatCurrency(stats.fixedExpenses)}</span>
                         </div>
-                        <div className="stat-card">
-                            <p className="stat-label">Variables</p>
-                            <p className="stat-value" style={{ fontSize: '1rem' }}>
-                                {formatCurrency(stats.variableExpenses)}
-                            </p>
+                        <div className="breakdown-divider"></div>
+                        <div className="breakdown-item">
+                            <span className="breakdown-label">Variables</span>
+                            <span className="breakdown-value">{formatCurrency(stats.variableExpenses)}</span>
                         </div>
+                        {stats.creditsExpenses > 0 && (
+                            <>
+                                <div className="breakdown-divider"></div>
+                                <div className="breakdown-item">
+                                    <span className="breakdown-label">Cuotas</span>
+                                    <span className="breakdown-value">{formatCurrency(stats.creditsExpenses)}</span>
+                                </div>
+                            </>
+                        )}
                     </div>
-                    {stats.creditsExpenses > 0 && (
-                        <div className="stat-card" style={{ marginTop: 'var(--spacing-md)', textAlign: 'center' }}>
-                            <p className="stat-label">Cuotas de Crédito</p>
-                            <p className="stat-value amount-expense" style={{ fontSize: '1rem' }}>
-                                {formatCurrency(stats.creditsExpenses)}
-                            </p>
-                        </div>
-                    )}
                 </div>
 
                 {/* Active Credits This Month */}
@@ -192,7 +189,7 @@ export default function Dashboard({ stats, recentTransactions, fixedExpenses, ac
                             <line x1="2" y1="10" x2="22" y2="10"></line>
                         </svg>
                         <p>No hay movimientos aún</p>
-                        <p style={{ fontSize: '0.875rem' }}>Toca el botón + para agregar uno</p>
+                        <p style={{ fontSize: '0.875rem' }}>Toca Ingresos o Gastos para agregar</p>
                     </div>
                 )}
             </div>

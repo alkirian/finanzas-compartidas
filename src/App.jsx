@@ -27,7 +27,6 @@ function App() {
   const [activeTab, setActiveTab] = useState('dashboard');
   const [showTransactionModal, setShowTransactionModal] = useState(false);
   const [preselectedType, setPreselectedType] = useState(null);
-  const [fabExpanded, setFabExpanded] = useState(false);
   const [editingTransaction, setEditingTransaction] = useState(null);
   const [loading, setLoading] = useState(true);
   const [toast, setToast] = useState(null);
@@ -138,7 +137,6 @@ function App() {
   const openTransactionModal = (type = null) => {
     setPreselectedType(type);
     setShowTransactionModal(true);
-    setFabExpanded(false);
   };
 
   // Get current month transactions
@@ -214,44 +212,6 @@ function App() {
           onDelete={handleDeleteTransaction}
         />
       )}
-
-      {/* FAB Backdrop */}
-      <div
-        className={`fab-backdrop ${fabExpanded ? 'visible' : ''}`}
-        onClick={() => setFabExpanded(false)}
-      />
-
-      {/* Expandable FAB */}
-      <div className={`fab-container ${fabExpanded ? 'expanded' : ''}`}>
-        <div className="fab-options">
-          <button
-            className="fab-option income"
-            onClick={() => openTransactionModal('income')}
-          >
-            <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
-              <line x1="12" y1="19" x2="12" y2="5"></line>
-              <polyline points="5 12 12 5 19 12"></polyline>
-            </svg>
-            Ingreso
-          </button>
-          <button
-            className="fab-option expense"
-            onClick={() => openTransactionModal('expense')}
-          >
-            <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
-              <line x1="12" y1="5" x2="12" y2="19"></line>
-              <polyline points="19 12 12 19 5 12"></polyline>
-            </svg>
-            Gasto
-          </button>
-        </div>
-        <button className="fab-main" onClick={() => setFabExpanded(!fabExpanded)}>
-          <svg xmlns="http://www.w3.org/2000/svg" width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
-            <line x1="12" y1="5" x2="12" y2="19"></line>
-            <line x1="5" y1="12" x2="19" y2="12"></line>
-          </svg>
-        </button>
-      </div>
 
       {/* Add Transaction Modal */}
       {showTransactionModal && (
