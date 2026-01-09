@@ -13,18 +13,40 @@ REGLAS DE INTERPRETACIÓN:
 
 El usuario puede mencionar UNA o VARIAS transacciones en la misma frase.
 
+REGLAS PARA LA DESCRIPCIÓN (MUY IMPORTANTE):
+- La descripción debe ser la PALABRA CLAVE o CATEGORÍA identificable, NO fragmentos del audio.
+- Identifica de qué se trata la transacción y escríbela correctamente con mayúscula inicial.
+- NUNCA uses fragmentos incompletos como "el super" o "E el super".
+- Siempre usa palabras completas y bien escritas.
+
+CATEGORÍAS COMUNES (usa estas cuando corresponda):
+- Supermercado, Super → "Supermercado"
+- Comida, almuerzo, cena, merienda → "Comida" o tipo específico
+- Nafta, combustible, bencina → "Nafta"
+- Trabajo, filmación, edición → "Trabajo de filmación", "Edición", etc.
+- Sueldo, salario → "Sueldo"
+- Uber, taxi, transporte → "Transporte" o el servicio específico
+- Farmacia, remedios → "Farmacia"
+- Ropa, shopping → "Ropa"
+- Streaming, Netflix, Spotify → nombre del servicio
+- Alquiler, luz, agua, internet → el servicio específico
+
 EJEMPLOS:
-- "Cobré 200 de filmación" → 1 transacción: income, 200, Filmación
-- "Gasté 50 en comida" → 1 transacción: expense, 50, Comida
+- "Gasté 500 en el super" → expense, 500, "Supermercado"
+- "Cobré 200 de filmación" → income, 200, "Trabajo de filmación"
+- "Gasté 50 en comida" → expense, 50, "Comida"
 - "Cobré 200 de filmación y gasté 50 en comida" → 2 transacciones
-- "Me pagaron 30000 del sueldo" → 1 transacción: income, 30000, Sueldo
-- "Almorcé por 800" → 1 transacción: expense, 800, Almuerzo
-- "Compré nafta 1500 y pagué el estacionamiento 200" → 2 transacciones
+- "Me pagaron 30000 del sueldo" → income, 30000, "Sueldo"
+- "Almorcé por 800" → expense, 800, "Almuerzo"
+- "Compré nafta 1500 y pagué el estacionamiento 200" → expense, 1500, "Nafta" + expense, 200, "Estacionamiento"
+- "Gasté 200 en uber" → expense, 200, "Uber"
+- "Pagué la luz 1500" → expense, 1500, "Luz"
+- "Cobré por un trabajo de edición 5000" → income, 5000, "Trabajo de edición"
 
 RESPONDE SOLO con este JSON (sin markdown, sin explicación):
 {
   "transactions": [
-    {"type": "income o expense", "amount": NUMERO, "description": "texto corto"}
+    {"type": "income o expense", "amount": NUMERO, "description": "Categoría bien escrita"}
   ]
 }
 

@@ -21,6 +21,13 @@ import {
   getCreditsSummary,
   getMonthlyStats,
 } from './lib/storage';
+import {
+  isNotificationSupported,
+  requestNotificationPermission,
+  sendTransactionNotification,
+  sendMultipleTransactionsNotification,
+  getNotificationPermission,
+} from './lib/notifications';
 import './index.css';
 
 function App() {
@@ -35,6 +42,7 @@ function App() {
   const [credits, setCredits] = useState([]);
   const [activeCredits, setActiveCredits] = useState([]);
   const [creditsSummary, setCreditsSummary] = useState({ totalRemaining: 0, activeCount: 0, totalMonthly: 0 });
+  const [notificationsEnabled, setNotificationsEnabled] = useState(false);
   const [stats, setStats] = useState({
     income: 0,
     variableExpenses: 0,
@@ -43,6 +51,41 @@ function App() {
     totalExpenses: 0,
     balance: 0,
   });
+
+  // Register Service Worker and request notification permissions
+  useEffect(() => {
+    // Register Service Worker
+    if ('serviceWorker' in navigator) {
+      navigator.serviceWorker.register('/finanzas-compartidas/sw.js')
+        .then((registration) => {
+          console.log('✅ Service Worker registered:', registration.scope);
+        })
+        .catch((error) => {
+          console.log('❌ Service Worker registration failed:', error);
+        });
+    }
+
+    // Request notification permission automatically
+    const setupNotifications = async () => {
+      if (isNotificationSupported()) {
+        const currentPermission = getNotificationPermission();
+
+        if (currentPermission === 'granted') {
+          setNotificationsEnabled(true);
+          console.log('📱 Notificaciones ya habilitadas');
+        } else if (currentPermission === 'default') {
+          // Ask for permission on first load
+          const permission = await requestNotificationPermission();
+          if (permission === 'granted') {
+            setNotificationsEnabled(true);
+            console.log('📱 Notificaciones activadas');
+          }
+        }
+      }
+    };
+
+    setupNotifications();
+  }, []);
 
   const loadData = useCallback(async () => {
     try {
@@ -88,6 +131,10 @@ function App() {
     await addTransaction(transaction);
     loadData();
     showToast(transaction.type === 'income' ? '¡Ingreso guardado!' : '¡Gasto guardado!');
+    // Send push notification
+    if (notificationsEnabled) {
+      sendTransactionNotification(transaction);
+    }
   };
 
   const handleUpdateTransaction = async (transaction) => {
@@ -152,22 +199,41 @@ function App() {
         loadData();
         const typeLabel = result.type === 'income' ? 'Ingreso' : 'Gasto';
         showToast(`¡${typeLabel} de $${result.amount.toLocaleString('es-UY')} registrado!`);
+        // Send push notification
+        if (notificationsEnabled) {
+          sendTransactionNotification(newTransaction);
+        }
       }
     } else if (result.action === 'add_multiple') {
       // Multiple transactions
-      let successCount = 0;
+      const addedTransactions = [];
       for (const t of result.transactions) {
         const newTransaction = await addTransaction({
           type: t.type,
           amount: t.amount,
           description: t.description,
         });
-        if (newTransaction) successCount++;
+        if (newTransaction) addedTransactions.push(newTransaction);
       }
       loadData();
-      showToast(`¡${successCount} transacciones registradas por voz!`);
+      showToast(`¡${addedTransactions.length} transacciones registradas por voz!`);
+      // Send push notification for multiple
+      if (notificationsEnabled && addedTransactions.length > 0) {
+        sendMultipleTransactionsNotification(addedTransactions);
+      }
     } else if (result.action === 'error') {
       showToast(result.message, 'error');
+    }
+  };
+
+  // Enable notifications
+  const handleEnableNotifications = async () => {
+    const permission = await requestNotificationPermission();
+    if (permission === 'granted') {
+      setNotificationsEnabled(true);
+      showToast('¡Notificaciones activadas!');
+    } else if (permission === 'denied') {
+      showToast('Notificaciones bloqueadas. Habilítalas en configuración.', 'error');
     }
   };
 
