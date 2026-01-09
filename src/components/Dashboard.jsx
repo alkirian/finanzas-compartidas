@@ -1,6 +1,6 @@
 import { formatCurrency, formatDate, getMonthName } from '../lib/storage';
 
-export default function Dashboard({ stats, recentTransactions, fixedExpenses, activeCredits, onEditTransaction }) {
+export default function Dashboard({ stats, recentTransactions, fixedExpenses, activeCredits, onEditTransaction, onQuickAdd }) {
     const now = new Date();
     const currentMonth = now.getMonth();
     const currentYear = now.getFullYear();
@@ -21,6 +21,30 @@ export default function Dashboard({ stats, recentTransactions, fixedExpenses, ac
                     <p className={`balance-value ${stats.balance >= 0 ? 'amount-income' : ''}`} style={{ color: stats.balance >= 0 ? '#10B981' : '#EF4444' }}>
                         {formatCurrency(stats.balance)}
                     </p>
+                </div>
+
+                {/* Quick Action Buttons */}
+                <div className="quick-actions">
+                    <button
+                        className="quick-action-btn income"
+                        onClick={() => onQuickAdd('income')}
+                    >
+                        <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                            <line x1="12" y1="19" x2="12" y2="5"></line>
+                            <polyline points="5 12 12 5 19 12"></polyline>
+                        </svg>
+                        Ingreso
+                    </button>
+                    <button
+                        className="quick-action-btn expense"
+                        onClick={() => onQuickAdd('expense')}
+                    >
+                        <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                            <line x1="12" y1="5" x2="12" y2="19"></line>
+                            <polyline points="19 12 12 19 5 12"></polyline>
+                        </svg>
+                        Gasto
+                    </button>
                 </div>
 
                 {/* Stats Grid */}

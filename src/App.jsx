@@ -5,6 +5,7 @@ import Credits from './components/Credits';
 import History from './components/History';
 import QuickTransaction from './components/QuickTransaction';
 import EditTransaction from './components/EditTransaction';
+import Toast from './components/Toast';
 import {
   getTransactions,
   addTransaction,
@@ -25,8 +26,11 @@ import './index.css';
 function App() {
   const [activeTab, setActiveTab] = useState('dashboard');
   const [showTransactionModal, setShowTransactionModal] = useState(false);
+  const [preselectedType, setPreselectedType] = useState(null);
+  const [fabExpanded, setFabExpanded] = useState(false);
   const [editingTransaction, setEditingTransaction] = useState(null);
   const [loading, setLoading] = useState(true);
+  const [toast, setToast] = useState(null);
   const [transactions, setTransactions] = useState([]);
   const [fixedExpenses, setFixedExpenses] = useState([]);
   const [credits, setCredits] = useState([]);
@@ -77,9 +81,14 @@ function App() {
     loadData();
   }, [loadData]);
 
+  const showToast = (message, type = 'success') => {
+    setToast({ message, type });
+  };
+
   const handleAddTransaction = async (transaction) => {
     await addTransaction(transaction);
     loadData();
+    showToast(transaction.type === 'income' ? '¡Ingreso guardado!' : '¡Gasto guardado!');
   };
 
   const handleUpdateTransaction = async (transaction) => {
@@ -89,35 +98,47 @@ function App() {
       amount: transaction.amount,
     });
     loadData();
+    showToast('¡Cambios guardados!');
   };
 
   const handleDeleteTransaction = async (id) => {
     await deleteTransaction(id);
     loadData();
+    showToast('Movimiento eliminado', 'info');
   };
 
   const handleAddFixedExpense = async (expense) => {
     await addFixedExpense(expense);
     loadData();
+    showToast('¡Gasto fijo guardado!');
   };
 
   const handleDeleteFixedExpense = async (id) => {
     await deleteFixedExpense(id);
     loadData();
+    showToast('Gasto fijo eliminado', 'info');
   };
 
   const handleAddCredit = async (credit) => {
     await addCredit(credit);
     loadData();
+    showToast('¡Crédito guardado!');
   };
 
   const handleDeleteCredit = async (id) => {
     await deleteCredit(id);
     loadData();
+    showToast('Crédito eliminado', 'info');
   };
 
   const handleEditTransaction = (transaction) => {
     setEditingTransaction(transaction);
+  };
+
+  const openTransactionModal = (type = null) => {
+    setPreselectedType(type);
+    setShowTransactionModal(true);
+    setFabExpanded(false);
   };
 
   // Get current month transactions
@@ -165,6 +186,7 @@ function App() {
           fixedExpenses={fixedExpenses}
           activeCredits={activeCredits}
           onEditTransaction={handleEditTransaction}
+          onQuickAdd={openTransactionModal}
         />
       )}
       {activeTab === 'fixed' && (
@@ -193,19 +215,53 @@ function App() {
         />
       )}
 
-      {/* FAB */}
-      <button className="fab" onClick={() => setShowTransactionModal(true)}>
-        <svg xmlns="http://www.w3.org/2000/svg" width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
-          <line x1="12" y1="5" x2="12" y2="19"></line>
-          <line x1="5" y1="12" x2="19" y2="12"></line>
-        </svg>
-      </button>
+      {/* FAB Backdrop */}
+      <div
+        className={`fab-backdrop ${fabExpanded ? 'visible' : ''}`}
+        onClick={() => setFabExpanded(false)}
+      />
+
+      {/* Expandable FAB */}
+      <div className={`fab-container ${fabExpanded ? 'expanded' : ''}`}>
+        <div className="fab-options">
+          <button
+            className="fab-option income"
+            onClick={() => openTransactionModal('income')}
+          >
+            <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+              <line x1="12" y1="19" x2="12" y2="5"></line>
+              <polyline points="5 12 12 5 19 12"></polyline>
+            </svg>
+            Ingreso
+          </button>
+          <button
+            className="fab-option expense"
+            onClick={() => openTransactionModal('expense')}
+          >
+            <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+              <line x1="12" y1="5" x2="12" y2="19"></line>
+              <polyline points="19 12 12 19 5 12"></polyline>
+            </svg>
+            Gasto
+          </button>
+        </div>
+        <button className="fab-main" onClick={() => setFabExpanded(!fabExpanded)}>
+          <svg xmlns="http://www.w3.org/2000/svg" width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+            <line x1="12" y1="5" x2="12" y2="19"></line>
+            <line x1="5" y1="12" x2="19" y2="12"></line>
+          </svg>
+        </button>
+      </div>
 
       {/* Add Transaction Modal */}
       {showTransactionModal && (
         <QuickTransaction
           onSave={handleAddTransaction}
-          onClose={() => setShowTransactionModal(false)}
+          onClose={() => {
+            setShowTransactionModal(false);
+            setPreselectedType(null);
+          }}
+          preselectedType={preselectedType}
         />
       )}
 
@@ -216,6 +272,15 @@ function App() {
           onSave={handleUpdateTransaction}
           onDelete={handleDeleteTransaction}
           onClose={() => setEditingTransaction(null)}
+        />
+      )}
+
+      {/* Toast Notification */}
+      {toast && (
+        <Toast
+          message={toast.message}
+          type={toast.type}
+          onClose={() => setToast(null)}
         />
       )}
 

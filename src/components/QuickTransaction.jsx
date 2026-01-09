@@ -1,8 +1,8 @@
 import { useState } from 'react';
 import { formatCurrency } from '../lib/storage';
 
-export default function QuickTransaction({ onSave, onClose }) {
-    const [type, setType] = useState('expense');
+export default function QuickTransaction({ onSave, onClose, preselectedType }) {
+    const [type, setType] = useState(preselectedType || 'expense');
     const [description, setDescription] = useState('');
     const [amount, setAmount] = useState('');
 
