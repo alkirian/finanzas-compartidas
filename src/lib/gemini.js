@@ -3,33 +3,69 @@
 const GEMINI_API_KEY = 'AIzaSyC0HLb5VIaNDQ0j_YKNR0U-wnRgtaxwpZ4';
 const GEMINI_API_URL = 'https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent';
 
-const SYSTEM_PROMPT = `Eres un asistente financiero amigable que ayuda a registrar gastos e ingresos. Tu trabajo es interpretar lo que dice el usuario y extraer la información financiera.
+const SYSTEM_PROMPT = `Parsea este comando de voz en español para una app de finanzas.
+Extrae: tipo (income/expense), monto (número), descripción (texto corto).
+Responde SOLO con JSON: {"action":"add_transaction","type":"income o expense","amount":NUMERO,"description":"texto"}`;
 
-EJEMPLOS de lo que el usuario puede decir:
-- "Gasto de 500 en supermercado" → expense, 500, supermercado
-- "Gasté 2000 en nafta" → expense, 2000, nafta
-- "Compré ropa por 1500" → expense, 1500, ropa
-- "Me pagaron 30000" → income, 30000, pago recibido
-- "Ingreso 50000 sueldo" → income, 50000, sueldo
-- "Cobré 10000" → income, 10000, cobro
-- "500 café" → expense, 500, café
-- "Almuerzo 800" → expense, 800, almuerzo
-- "Sueldo 45000" → income, 45000, sueldo
+// Simple local fallback parser using keywords
+function parseWithKeywords(text) {
+    const lowerText = text.toLowerCase().trim();
 
-REGLAS:
-1. Si menciona: gastar, comprar, pagar, almuerzo, café, nafta, super, comida, etc → type: "expense"
-2. Si menciona: cobrar, sueldo, ingreso, pago, transferencia recibida, me pagaron → type: "income"
-3. Si solo hay un número y una palabra, asume que es un GASTO
-4. El monto SIEMPRE debe ser un número positivo
-5. Si no hay descripción clara, inventa una corta basada en el contexto
+    // Find numbers in the text
+    const numbers = lowerText.match(/\d+(?:[.,]\d+)?/g);
+    if (!numbers || numbers.length === 0) {
+        return null;
+    }
 
-RESPONDE SOLO con este JSON exacto (sin markdown, sin explicación):
-{"action":"add_transaction","type":"income o expense","amount":NUMERO,"description":"texto corto"}`;
+    const amount = parseFloat(numbers[0].replace(',', '.'));
+
+    // Income keywords
+    const incomeKeywords = ['cobro', 'cobré', 'ingreso', 'sueldo', 'pagaron', 'recibí', 'transferencia', 'pago recibido'];
+    const isIncome = incomeKeywords.some(keyword => lowerText.includes(keyword));
+
+    // Get description - remove numbers and keywords
+    let description = lowerText
+        .replace(/\d+(?:[.,]\d+)?/g, '')
+        .replace(/gasto|gasté|compré|pagué|cobro|cobré|ingreso|sueldo|de|en|por|pesos|uyu/gi, '')
+        .trim();
+
+    if (!description || description.length < 2) {
+        description = isIncome ? 'Ingreso' : 'Gasto';
+    }
+
+    // Capitalize first letter
+    description = description.charAt(0).toUpperCase() + description.slice(1);
+
+    return {
+        action: 'add_transaction',
+        type: isIncome ? 'income' : 'expense',
+        amount: amount,
+        description: description,
+    };
+}
 
 export async function parseVoiceCommand(transcription) {
     console.log('🎤 Transcripción recibida:', transcription);
 
+    if (!transcription || transcription.trim().length < 2) {
+        return {
+            action: 'error',
+            message: 'No se escuchó nada. Intenta de nuevo.',
+        };
+    }
+
+    // First try local parsing (fast and reliable)
+    const localResult = parseWithKeywords(transcription);
+
+    if (localResult && localResult.amount > 0) {
+        console.log('✅ Parseado localmente:', localResult);
+        return localResult;
+    }
+
+    // If local parsing failed, try Gemini API
     try {
+        console.log('🤖 Intentando con Gemini API...');
+
         const response = await fetch(`${GEMINI_API_URL}?key=${GEMINI_API_KEY}`, {
             method: 'POST',
             headers: {
@@ -39,60 +75,45 @@ export async function parseVoiceCommand(transcription) {
                 contents: [
                     {
                         role: 'user',
-                        parts: [{ text: `${SYSTEM_PROMPT}\n\nEl usuario dijo: "${transcription}"\n\nResponde SOLO con el JSON:` }],
+                        parts: [{ text: `${SYSTEM_PROMPT}\n\nComando: "${transcription}"` }],
                     },
                 ],
                 generationConfig: {
-                    temperature: 0.2,
-                    maxOutputTokens: 150,
+                    temperature: 0.1,
+                    maxOutputTokens: 100,
                 },
             }),
         });
 
         if (!response.ok) {
-            const errorText = await response.text();
-            console.error('❌ Gemini API error:', response.status, errorText);
             throw new Error(`API error: ${response.status}`);
         }
 
         const data = await response.json();
-        console.log('🤖 Gemini response:', JSON.stringify(data, null, 2));
-
         const text = data.candidates?.[0]?.content?.parts?.[0]?.text;
 
-        if (!text) {
-            console.error('❌ No text in response');
-            throw new Error('No response from Gemini');
+        if (text) {
+            const jsonMatch = text.match(/\{[^{}]*\}/);
+            if (jsonMatch) {
+                const parsed = JSON.parse(jsonMatch[0]);
+                if (parsed.action === 'add_transaction' && parsed.amount) {
+                    console.log('✅ Parseado con Gemini:', parsed);
+                    return {
+                        action: 'add_transaction',
+                        type: parsed.type || 'expense',
+                        amount: Number(parsed.amount),
+                        description: parsed.description || 'Transacción',
+                    };
+                }
+            }
         }
-
-        console.log('📝 Gemini text:', text);
-
-        // Parse the JSON response - more flexible regex
-        const jsonMatch = text.match(/\{[^{}]*\}/);
-        if (!jsonMatch) {
-            console.error('❌ No JSON found in:', text);
-            throw new Error('Invalid JSON response');
-        }
-
-        const parsed = JSON.parse(jsonMatch[0]);
-        console.log('✅ Parsed result:', parsed);
-
-        // Validate the response
-        if (parsed.action === 'add_transaction' && parsed.amount && parsed.type) {
-            return {
-                action: 'add_transaction',
-                type: parsed.type,
-                amount: Number(parsed.amount),
-                description: parsed.description || 'Transacción por voz',
-            };
-        }
-
-        return parsed;
     } catch (error) {
-        console.error('❌ Error parsing voice command:', error);
-        return {
-            action: 'error',
-            message: `Error: ${error.message}. Intenta decir algo como "Gasto de 500 en supermercado"`,
-        };
+        console.error('⚠️ Gemini API falló:', error.message);
     }
+
+    // If everything failed
+    return {
+        action: 'error',
+        message: 'Di algo como "Gasto 500 supermercado" o "Cobro 30000 sueldo"',
+    };
 }
